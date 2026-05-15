@@ -1,11 +1,39 @@
+use handlebars::{
+    Context, Handlebars, Helper, HelperResult, Output, RenderContext, RenderErrorReason,
+};
 use std::str::FromStr;
 
 use crate::config::Channel;
-use handlebars::Handlebars;
+
 use reqwest::{
     header::{HeaderMap, HeaderName, HeaderValue},
     ClientBuilder,
 };
+
+fn json_helper(
+    h: &Helper,
+    _: &Handlebars,
+    _: &Context,
+    _: &mut RenderContext,
+    out: &mut dyn Output,
+) -> HelperResult {
+    let param = h.param(0).ok_or_else(|| {
+        RenderErrorReason::ParamNotFoundForIndex("json helper: missing parameter", 0)
+    })?;
+
+    let value = param.value();
+    let json_str = serde_json::to_string(value).map_err(|e| RenderErrorReason::SerdeError(e))?;
+
+    let trimmed = if json_str.starts_with('"') && json_str.ends_with('"') {
+        &json_str[1..json_str.len() - 1]
+    } else {
+        &json_str
+    };
+
+    out.write(trimmed)?;
+
+    Ok(())
+}
 
 pub struct SmtpChannel {}
 
@@ -107,6 +135,10 @@ impl<'a> TryFrom<&Channel> for WebhookChannel<'a> {
         webhook.message_template = Handlebars::new();
         webhook
             .message_template
+            .register_helper("json", Box::new(json_helper));
+
+        webhook
+            .message_template
             .register_template_string("t", &webhook.message)
             .unwrap();
 
@@ -129,7 +161,15 @@ impl<'a> Notify for WebhookChannel<'a> {
             None => ClientBuilder::new(),
         };
 
-        c.build().unwrap().post(&self.url).body(body).send().await?;
+        println!("Client: {:?}", c);
+
+        let r = c.build().unwrap().post(&self.url).body(body).send().await?;
+
+        println!(
+            "Response status: {}, response text: {:?}",
+            r.status(),
+            r.text().await?
+        );
 
         Ok(())
     }

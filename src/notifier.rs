@@ -25,16 +25,11 @@ impl<'a> Notifier<'a> {
                 }
             };
 
-            println!(
-                "Sending for event: {:?}",
-                serde_json::to_string_pretty(&notification.1)
-            );
-
             for (channel_name, _custom_message) in notification.0.channels.iter() {
                 if let Some(channel) = self.webhook_channels.get(channel_name) {
                     let generated_message =
                         match channel.message_template.render("t", &notification.1) {
-                            Ok(n) => n.replace("\\", "\\\\"),
+                            Ok(n) => n,
                             Err(e) => {
                                 eprintln!("Error rendering message: {:?}", e);
                                 continue;

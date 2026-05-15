@@ -4,11 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-reqwest = "0.12.5"
-serde = { version = "1.0.203", features = ["derive"]}
-toml = "0.8.14"
-opensearch = "2.2.0"
+reqwest = "0.13.3"
+serde = { version = "1.0.228", features = ["derive"]}
+toml = "1.1.2"
+opensearch = "2.4.0"
 tokio = { version = "*", features = ["full"] }
-serde_json = "1.0.124"
-chrono = "0.4.38"
-handlebars = "6.0.0"
+serde_json = "1.0.149"
+chrono = "0.4.44"
+handlebars = "6.4.0"
