@@ -161,8 +161,6 @@ impl<'a> Notify for WebhookChannel<'a> {
             None => ClientBuilder::new(),
         };
 
-        println!("Client: {:?}", c);
-
         let r = c.build().unwrap().post(&self.url).body(body).send().await?;
 
         println!(
